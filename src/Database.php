@@ -31,8 +31,12 @@ abstract class Database
         {
             $this->connection = new PDO($this->dsn(),$this->config["username"],$this->config["password"], $this->options());
             $this->isConnected = true;
-            echo "connected";
         }
+    }
+
+    public function isConnected()
+    {
+        return $this->isConnected ? true : false;
     }
 
 
