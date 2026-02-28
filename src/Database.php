@@ -34,7 +34,7 @@ abstract class Database
         }
     }
 
-    public function isConnected()
+    private function isConnected()
     {
         return $this->isConnected ? true : false;
     }
@@ -109,4 +109,5 @@ abstract class Database
     {
         return $this->getConnection()->query($sql);
     }
+    
 }
