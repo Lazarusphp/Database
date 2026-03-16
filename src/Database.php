@@ -1,6 +1,7 @@
 <?php
 namespace LazarusPhp\Database;
 
+use Exception;
 use LazarusPhp\Database\Connection;
 use PDO;
 use PDOException;
@@ -9,14 +10,12 @@ use RuntimeException;
 
 abstract class Database 
 {
-
-  
+    
 
     protected ?PDOStatement $stmt = null;
-    public int $lastId = 0;
     private array $config;
-    private $connection;
-    protected bool $isConnected = false;
+    private static $connection;
+    protected static $isConnected = false;
 
     public function __construct()
     {
@@ -27,24 +26,26 @@ abstract class Database
     private function connect()
     {
         // Implement the connection Test here
-        if(!$this->isConnected)
+        if(!self::$isConnected)
         {
-            $this->connection = new PDO($this->dsn(),$this->config["username"],$this->config["password"], $this->options());
-            $this->isConnected = true;
+            self::$connection = new PDO($this->dsn(),$this->config["username"],$this->config["password"], $this->options());
+            self::$isConnected = true;
         }
+        return self::$connection;
     }
 
     private function isConnected()
     {
-        return $this->isConnected ? true : false;
+        return self::$isConnected ? true : false;
     }
 
 
-    private function getConnection()
+    // Public Getter for Connection
+    public function getConnection()
     {
-        if($this->isConnected === true)
+        if(self::$isConnected === true)
         {
-            return $this->connection;
+            return self::$connection;
         }
     }
     
@@ -64,6 +65,34 @@ abstract class Database
         private function dsn():string
     {
         return $this->config["type"] . ":host=" . $this->config["hostname"] . ";dbname=" . $this->config["dbname"];
+    }
+
+    protected function hasTable(string $table):bool
+    {
+        Connection::make();
+        Connection::retrieve();
+        
+        if(!self::$isConnected)
+        {
+            throw new Exception("No Connection Found");
+        }
+        
+    
+        $hostname = env("dbname");
+        $q = "SELECT 1 
+        FROM information_schema.tables 
+        WHERE table_schema = :hostname 
+        AND table_name = :table  
+        LIMIT 1";
+
+        echo $q;
+
+        $stmt = $this->getConnection()->prepare($q);
+        $stmt->execute([
+        ":hostname"=>$this->config["dbname"],
+        ":table"=>$table]);
+
+        return $stmt->fetch() !== false;
     }
 
 
@@ -108,6 +137,11 @@ abstract class Database
     protected function query(string $sql)
     {
         return $this->getConnection()->query($sql);
+    }
+
+     protected  function lastId()
+    {
+        return self::$connection->lastInsertId();
     }
     
 }
