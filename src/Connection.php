@@ -1,9 +1,12 @@
 <?php
 namespace LazarusPhp\Database;
 
+use PDOStatement;
+
 abstract class Connection
 {
     private static array $config = [];
+    private PDOStatement $connection;
     
     public static function make(?string $type=null,?string $hostname=null,?string $username=null,?string $password=null,?string $dbname=null):void
     {
@@ -16,9 +19,10 @@ abstract class Connection
             "dbname"=>($dbname ?? $_ENV["dbname"]),
         ];
     }
-
+    
     public static function retrieve():array
     {
         return self::$config;
     }
+
 }
