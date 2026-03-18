@@ -3,17 +3,19 @@ namespace LazarusPhp\Database;
 
 use PDOStatement;
 use Pdo;
+use PDOException;
 
 class Store
 {
     private $connection;
+    private $rows;
 
     public function __construct($connection)
     {
         $this->connection = $connection;
     }
     
-    public function parse(string $sql,array $params)
+    public function parse(string $sql,array $params,$qtype="select")
     {   
         // Process Query 
             $stmt = $this->connection->prepare($sql);
@@ -25,13 +27,19 @@ class Store
                 $stmt->bindValue($key, $value, $type);
             }
         }
-            $stmt->execute($params);
-            return $stmt;
-    }
 
+            $stmt->execute();
+            return match($qtype)
+            {
+                "insert","update","replace","delete" => $stmt->rowCount(),
+                default => $stmt,
+            };
+
+    }
 
     private function getParamType($value)
     {
+    
         switch ($value) {
             case is_bool($value):
                 return PDO::PARAM_BOOL;
