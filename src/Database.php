@@ -19,52 +19,12 @@ abstract class Database
 
     public function __construct()
     {
-        $this->config = Connection::retrieve(); 
-        $this->connect();
+        $this->pdo();
     }
 
-    private function connect()
+    public function pdo()
     {
-        // Implement the connection Test here
-        if(!self::$isConnected)
-        {
-            self::$connection = new PDO($this->dsn(),$this->config["username"],$this->config["password"], $this->options());
-            self::$isConnected = true;
-        }
-        return self::$connection;
-    }
-
-    private function isConnected()
-    {
-        return self::$isConnected ? true : false;
-    }
-
-
-    // Public Getter for Connection
-    public function getConnection()
-    {
-        if(self::$isConnected === true)
-        {
-            return self::$connection;
-        }
-    }
-    
- 
-
-    private function options():array
-    {
-        $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
-
-        return $options;
-    }
-
-        private function dsn():string
-    {
-        return $this->config["type"] . ":host=" . $this->config["hostname"] . ";dbname=" . $this->config["dbname"];
+        return Connection::get();
     }
 
     protected function hasTable(string $table):bool
@@ -87,7 +47,7 @@ abstract class Database
 
         echo $q;
 
-        $stmt = $this->getConnection()->prepare($q);
+        $stmt = $this->pdo()->prepare($q);
         $stmt->execute([
         ":hostname"=>$this->config["dbname"],
         ":table"=>$table]);
@@ -100,18 +60,18 @@ abstract class Database
     protected function beginTransaction()
     {
         try {
-            $this->getConnection()->beginTransaction();
+            $this->pdo()->beginTransaction();
         } catch (PDOException $e) {
             throw new RuntimeException("Failed to begin transaction: " . $e->getMessage(), (int)$e->getCode());
         }
     }
-        // $this->getConnection()->beginTransaction();
+        // $this->pdo()->beginTransaction();
 
     // Commit transactoin
     protected function commit()
     {
         try {
-            $this->getConnection()->commit();
+            $this->pdo()->commit();
         } catch (PDOException $e) {
             throw new RuntimeException("Failed to commit transaction: " . $e->getMessage(), (int)$e->getCode());
         }
@@ -121,7 +81,7 @@ abstract class Database
     protected function rollback()
     {
         try {
-            $this->getConnection()->rollback();
+            $this->pdo()->rollback();
         } catch (PDOException $e) {
             throw new RuntimeException("Failed to rollback transaction: " . $e->getMessage(), (int)$e->getCode());
         }
@@ -130,13 +90,13 @@ abstract class Database
     // Set Prepare Statement using prepart
     protected function prepare(string $sql)
     {
-        return $this->getConnection()->prepare($sql);
+        return $this->pdo()->prepare($sql);
     }
 
     // Set prepare statements using query
     protected function query(string $sql)
     {
-        return $this->getConnection()->query($sql);
+        return $this->pdo()->query($sql);
     }
 
      protected  function lastId()
