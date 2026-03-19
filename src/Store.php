@@ -10,11 +10,11 @@ class Store
     private $connection;
     private $rows;
 
-    public function __construct($connection)
+    public function __construct()
     {
-        $this->connection = $connection;
+        $this->connection = Connection::get();
     }
-    
+
     public function parse(string $sql,array $params,$qtype="select")
     {   
         // Process Query 
