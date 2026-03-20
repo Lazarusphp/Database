@@ -15,7 +15,7 @@ class Store
         $this->connection = Connection::get();
     }
 
-    public function parse(string $sql,array $params,$qtype="select")
+    public function parse(string $sql,array $params,$qtype="select"):PDOStatement
     {   
         // Process Query 
             $stmt = $this->connection->prepare($sql);
@@ -29,13 +29,10 @@ class Store
         }
 
             $stmt->execute();
-            return match($qtype)
-            {
-                "insert","update","replace","delete" => $stmt->rowCount(),
-                default => $stmt,
-            };
+            return $stmt;
 
     }
+
 
     private function getParamType($value)
     {
