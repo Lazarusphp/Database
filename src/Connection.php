@@ -1,26 +1,44 @@
 <?php
 namespace LazarusPhp\Database;
 
+use Exception;
 use PDO;
 use PDOStatement;
 use RuntimeException;
+use LazarusPhp\PathResolver\Resolve;
 
 abstract class Connection
 {
     private static array $config = [];
     private PDOStatement $connection;
     private static ?PDO $pdo = null;
-    
-    public static function make(?string $type=null,?string $hostname=null,?string $username=null,?string $password=null,?string $dbname=null):void
+    private static array $required = ["DRIVER","HOSTNAME","USER","PASSWORD","NAME"]; 
+
+    private static  function ValidateRequirements(array $connection)
     {
-        self::$config = 
-        [
-            "type"=>($type ?? $_ENV["type"]),
-            "hostname"=>($hostname ?? $_ENV["hostname"]),
-            "username"=>($username ?? $_ENV["username"]),
-            "password"=>($password ?? $_ENV["password"]),
-            "dbname"=>($dbname ?? $_ENV["dbname"]),
-        ];
+         foreach($connection as $key => $value)
+        {
+            if(!in_array($key,self::$required))
+            {
+                throw new Exception("Invalid  key {$key} passed  supported keys : " . implode(", ",self::$required));
+            }
+        }
+    }
+
+    public static function make(array $connection):void
+    {        
+
+    // Validate Keys Match With Connection Variables;
+            self::ValidateRequirements($connection);
+
+            self::$config = [
+                "type"=>($connection["DRIVER"]),
+                "hostname"=>($connection["HOSTNAME"]),
+                "username"=>($connection["USER"]),
+                "password"=>($connection["PASSWORD"]),
+                "dbname"=>($connection["NAME"]),
+            ];
+
     }
 
 

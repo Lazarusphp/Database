@@ -29,8 +29,6 @@ abstract class Database
 
     protected function hasTable(string $table):bool
     {
-        Connection::make();
-        Connection::retrieve();
         
         if(!self::$isConnected)
         {
@@ -99,9 +97,9 @@ abstract class Database
         return $this->pdo()->query($sql);
     }
 
-     protected  function lastId()
+     protected function lastId()
     {
-        return self::$connection->lastInsertId();
+        return Connection::get()->lastInsertId();
     }
     
 }
