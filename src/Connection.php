@@ -1,83 +1,38 @@
 <?php
-namespace LazarusPhp\Database;
+namespace ElegenceIO\Database;
 
-use Exception;
 use PDO;
-use PDOStatement;
-use RuntimeException;
-use LazarusPhp\PathResolver\Resolve;
 
-abstract class Connection
+class Connection
 {
-    private static array $config = [];
-    private PDOStatement $connection;
-    private static ?PDO $pdo = null;
-    private static array $required = ["DRIVER","HOSTNAME","USER","PASSWORD","NAME"]; 
-
-    private static  function ValidateRequirements(array $connection)
+    private bool $isConnected = false;
+    private ?PDO $pdo = null;
+    public function __construct(array &$config)
     {
-         foreach($connection as $key => $value)
-        {
-            if(!in_array($key,self::$required))
-            {
-                throw new Exception("Invalid  key {$key} passed  supported keys : " . implode(", ",self::$required));
-            }
-        }
+
+        $this->pdo = $this->make($config);
     }
 
-    public static function make(array $connection):void
-    {        
-
-    // Validate Keys Match With Connection Variables;
-            self::ValidateRequirements($connection);
-
-            self::$config = [
-                "type"=>($connection["DRIVER"]),
-                "hostname"=>($connection["HOSTNAME"]),
-                "username"=>($connection["USER"]),
-                "password"=>($connection["PASSWORD"]),
-                "dbname"=>($connection["NAME"]),
-            ];
-
-    }
-
-
-
-    public static function get()
+    private function make(array $config)
     {
-        if(!self::$pdo)
-        {
-            if(empty(self::$config))
-            {
-                throw new RuntimeException("Connection Not Made : Call `Connection::make()` first ");
-            }
-
-            self::$pdo = self::connect();
-        }
+        $dsn = $config["driver"].":host=".$config["hostname"].";dbname=".$config["name"];
+        $this->isConnected = true;    
+        return new PDO ($dsn,$config["user"],$config["password"],$this->options());
         
-        return self::$pdo;
     }
 
-    private static function connect()
+    private function options():array
     {
-        $config = self::$config;
-        $dsn = $config["type"].":host=".$config["hostname"].";dbname=".$config["dbname"];
-        return new PDO($dsn,$config["username"],$config["password"],self::options());
-    }
-
-    private static function options():array
-    {
-          return [
+           return [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
-
     }
-    
-    public static function retrieve():array
+
+
+    public function connect() :object 
     {
-        return self::$config;
+        return $this->pdo;   
     }
-
 }

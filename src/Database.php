@@ -1,56 +1,32 @@
 <?php
-namespace LazarusPhp\Database;
+namespace ElegenceIO\Database;
 
 use Exception;
-use LazarusPhp\Database\Connection;
+use ElegenceIO\Database\Connection;
 use PDO;
 use PDOException;
 use PDOStatement;
 use RuntimeException;
 
-abstract class Database 
+class Database 
 {
-    
 
     protected ?PDOStatement $stmt = null;
     private array $config;
-    private static $connection;
-    protected static $isConnected = false;
+    private ?Connection $connection = null;
+    private ?PDO $pdo = null;
 
-    public function __construct()
+    public function __construct(array $config)
     {
-        $this->pdo();
+        $this->connection = new Connection($config);
+        $this->pdo = $this->connection->connect();
     }
 
+
+    
     public function pdo()
     {
-        return Connection::get();
-    }
-
-    protected function hasTable(string $table):bool
-    {
-        
-        if(!self::$isConnected)
-        {
-            throw new Exception("No Connection Found");
-        }
-        
-    
-        $hostname = env("dbname");
-        $q = "SELECT 1 
-        FROM information_schema.tables 
-        WHERE table_schema = :hostname 
-        AND table_name = :table  
-        LIMIT 1";
-
-        echo $q;
-
-        $stmt = $this->pdo()->prepare($q);
-        $stmt->execute([
-        ":hostname"=>$this->config["dbname"],
-        ":table"=>$table]);
-
-        return $stmt->fetch() !== false;
+        return $this->pdo;
     }
 
 
@@ -99,7 +75,7 @@ abstract class Database
 
      protected function lastId()
     {
-        return Connection::get()->lastInsertId();
+        return $this->connection->connect()->lastInsertId();
     }
     
 }

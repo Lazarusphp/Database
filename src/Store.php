@@ -1,5 +1,5 @@
 <?php
-namespace LazarusPhp\Database;
+namespace ElegenceIO\Database;
 
 use PDOStatement;
 use Pdo;
@@ -7,12 +7,12 @@ use PDOException;
 
 class Store
 {
-    private $connection;
+    private ?object $connection = null;
     private $rows;
-
-    public function __construct()
+    
+    public function __construct(object $connection)
     {
-        $this->connection = Connection::get();
+        $this->connection = $connection;
     }
 
     public function parse(string $sql,array $params,$qtype="select"):PDOStatement
@@ -34,7 +34,7 @@ class Store
     }
 
 
-    private function getParamType($value)
+    private function getParamType(int|string|bool|null $value)
     {
     
         switch ($value) {

@@ -1,5 +1,5 @@
 <?php
-namespace LazarusPhp\Database\Interfaces;
+namespace ElegenceIO\Database\Interfaces;
 
 interface DatabaseInterface
 {
